@@ -21,7 +21,6 @@ services:
     container_name: 'backend_skymarket'
     ports:
       - '8001:8000'
-    # запуск оболочки терминала, далее - выполнение команд
     tty: true
     command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     env_file:
