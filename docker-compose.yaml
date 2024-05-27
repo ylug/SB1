@@ -24,7 +24,7 @@ services:
     tty: true
     command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     env_file:
-      - ../skymarket/.env
+      - ../.env
     volumes:
       - ../skymarket:/skymarket
       - ../skymarket/django_static:/usr/share/nginx/html/django_static/
