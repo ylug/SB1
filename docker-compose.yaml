@@ -27,8 +27,8 @@ services:
       - ../skymarket/.env
     volumes:
       - ../skymarket:/skymarket
-      - ../skymarket/persistentdata/django_static:/usr/share/nginx/html/django_static/
-      - ../skymarket/persistentdata/django_media:/usr/share/nginx/html/django_media/
+      - ../skymarket/django_static:/usr/share/nginx/html/django_static/
+      - ../skymarket/django_media:/usr/share/nginx/html/django_media/
     depends_on:
       db:
         condition: service_healthy
