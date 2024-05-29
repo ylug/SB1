@@ -1,42 +1,43 @@
+version: '3'
 services:
   db:
-    image: postgres:15.1-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    restart: always
-    healthcheck:
-      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
-      interval: 30s
-      timeout: 10s
-      retries: 15
-    ports:
-    - "${POSTGRES_PORT}:5432"
-
-  backend:
-    build: ../skymarket
-    container_name: 'backend_skymarket'
-    ports:
-      - '8001:8000'
-    tty: true
-    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    image: postgres
     env_file:
-      - ../.env
+      - .env
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "skymarket"
     volumes:
-      - ../skymarket:/skymarket
-      - ../skymarket/django_static:/usr/share/nginx/html/django_static/
-      - ../skymarket/django_media:/usr/share/nginx/html/django_media/
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    env_file: .env
+    tty: true
+    command: sh -c "python skymarket/manage.py migrate && python skymarket/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
 
   frontend:
-    build: ./frontend_react/.
+    build: .
     volumes:
       - frontend:/app/build
+    depends_on:
+      - db
 
   nginx:
     image: nginx:1.19.3
@@ -44,14 +45,14 @@ services:
       - "8000:8000"
       - "3000:3000"
     volumes:
-      - ./skymarket/django_static/:/usr/share/nginx/html/django_static/
-      - ./skymarket/django_media/:/usr/share/nginx/html/django_media/
+      - ../skymarket/django_static/:/usr/share/nginx/html/django_static/
+      - ../skymarket/django_media/:/usr/share/nginx/html/django_media/
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - frontend:/usr/share/nginx/html/
     restart: always
     depends_on:
+      - db
       - frontend
-
 volumes:
-  postgres_data:  
+  pg_data:
   frontend:
